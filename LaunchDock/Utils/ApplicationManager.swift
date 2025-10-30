@@ -15,23 +15,16 @@ class ApplicationManager: ObservableObject {
     @Published var applications: [AppInfo] = []
     @Published var isLoading = true
     @Published var searchText = ""
-    @Published var sourceFilter: Set<AppInfo.AppSource> = Set(AppInfo.AppSource.allCases)
     
     var filteredApps: [AppInfo] {
         let visibleApps = folderManager?.getVisibleApps(applications) ?? applications
-        var filtered = visibleApps
-        
-        // Фильтр по источнику
-        filtered = filtered.filter { sourceFilter.contains($0.source) }
-        
-        // Фильтр по поиску
-        if !searchText.isEmpty {
-            filtered = filtered.filter {
+        if searchText.isEmpty {
+            return visibleApps
+        } else {
+            return visibleApps.filter {
                 $0.name.localizedCaseInsensitiveContains(searchText)
             }
         }
-        
-        return filtered
     }
     
     private var folderManager: FolderManager?
@@ -50,20 +43,20 @@ class ApplicationManager: ObservableObject {
             
             // Поиск приложений в /Applications
             let applicationsURL = URL(fileURLWithPath: "/Applications")
-            apps.append(contentsOf: self.scanDirectory(applicationsURL, source: .applications))
+            apps.append(contentsOf: self.scanDirectory(applicationsURL))
             
             // Поиск системных приложений в /System/Applications
             let systemApplicationsURL = URL(fileURLWithPath: "/System/Applications")
-            apps.append(contentsOf: self.scanDirectory(systemApplicationsURL, source: .systemApplications))
+            apps.append(contentsOf: self.scanDirectory(systemApplicationsURL))
             
             // Поиск системных утилит в /System/Applications/Utilities
             let systemUtilitiesURL = URL(fileURLWithPath: "/System/Applications/Utilities")
-            apps.append(contentsOf: self.scanDirectory(systemUtilitiesURL, source: .systemUtilities))
+            apps.append(contentsOf: self.scanDirectory(systemUtilitiesURL))
             
             // Поиск в папке пользователя Applications
             let userApplicationsURL = FileManager.default.homeDirectoryForCurrentUser
                 .appendingPathComponent("Applications")
-            apps.append(contentsOf: self.scanDirectory(userApplicationsURL, source: .userApplications))
+            apps.append(contentsOf: self.scanDirectory(userApplicationsURL))
             
             // Удаление дубликатов и сортировка
             let uniqueApps = Array(Set(apps))
@@ -75,8 +68,18 @@ class ApplicationManager: ObservableObject {
             }
         }
     }
-       
-    private func scanDirectory(_ url: URL, source: AppInfo.AppSource) -> [AppInfo] {
+    
+    func addCustomApplication(path: String) {
+        if let appInfo = createAppInfo(from: URL(fileURLWithPath: path)) {
+            // Проверяем, нет ли уже такого приложения
+            if !applications.contains(where: { $0.path == path }) {
+                applications.append(appInfo)
+                applications.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            }
+        }
+    }
+    
+    private func scanDirectory(_ url: URL) -> [AppInfo] {
         var apps: [AppInfo] = []
         
         guard FileManager.default.fileExists(atPath: url.path) else { return apps }
@@ -88,7 +91,7 @@ class ApplicationManager: ObservableObject {
         ) {
             for case let appURL as URL in enumerator {
                 if appURL.pathExtension == "app" {
-                    if let appInfo = createAppInfo(from: appURL, source: source) {
+                    if let appInfo = createAppInfo(from: appURL) {
                         apps.append(appInfo)
                     }
                 }
@@ -98,7 +101,7 @@ class ApplicationManager: ObservableObject {
         return apps
     }
     
-    private func createAppInfo(from url: URL, source: AppInfo.AppSource) -> AppInfo? {
+    private func createAppInfo(from url: URL) -> AppInfo? {
         guard let bundle = Bundle(url: url) else { return nil }
         
         let appName = bundle.localizedInfoDictionary?["CFBundleDisplayName"] as? String ??
@@ -112,13 +115,12 @@ class ApplicationManager: ObservableObject {
         return AppInfo(
             name: appName,
             bundleIdentifier: bundleIdentifier,
-            path: url.path,
-            source: source
+            url: url,
         )
     }
     
     func launchApplication(_ app: AppInfo) {
-        guard let appURL = URL(string: app.path) else { return }
+        let appURL = app.url
         let configuration = NSWorkspace.OpenConfiguration()
         NSWorkspace.shared.openApplication(at: appURL, configuration: configuration) { (app, error) in
             if let error = error {

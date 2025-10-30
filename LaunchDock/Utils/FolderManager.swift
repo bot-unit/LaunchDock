@@ -19,7 +19,7 @@ class FolderManager: ObservableObject {
     init() {
         // Создаем папку для конфигурации в Documents
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let appConfigPath = documentsPath.appendingPathComponent("LaunchDock")
+        let appConfigPath = documentsPath.appendingPathComponent("LaunchDockConfig")
         
         // Создаем папку, если её нет
         try? FileManager.default.createDirectory(at: appConfigPath, withIntermediateDirectories: true)
@@ -39,6 +39,9 @@ class FolderManager: ObservableObject {
     func addFolder(name: String, color: VirtualFolder.FolderColor) {
         let folder = VirtualFolder(name: name, appPaths: [], color: color)
         folders.append(folder)
+        print("✅ Создана новая папка: '\(name)' (цвет: \(color.rawValue))")
+        print("   ID: \(folder.id)")
+        print("   Всего папок: \(folders.count)")
         saveFolders()
     }
     
@@ -56,15 +59,25 @@ class FolderManager: ObservableObject {
     
     func addAppToFolder(_ app: AppInfo, folder: VirtualFolder) {
         if let index = folders.firstIndex(where: { $0.id == folder.id }) {
-            folders[index].appPaths.insert(app.path)
+            var updatedFolder = folders[index]
+            updatedFolder.appPaths.insert(app.path)
+            folders[index] = updatedFolder
             saveFolders()
+            print("✅ Добавлено приложение '\(app.name)' в папку '\(folder.name)'")
+            print("   Путь: \(app.path)")
+            print("   Всего приложений в папке: \(folders[index].appPaths.count)")
+        } else {
+            print("❌ Папка не найдена: \(folder.name)")
         }
     }
     
     func removeAppFromFolder(_ app: AppInfo, folder: VirtualFolder) {
         if let index = folders.firstIndex(where: { $0.id == folder.id }) {
-            folders[index].appPaths.remove(app.path)
+            var updatedFolder = folders[index]
+            updatedFolder.appPaths.remove(app.path)
+            folders[index] = updatedFolder
             saveFolders()
+            print("✅ Удалено приложение '\(app.name)' из папки '\(folder.name)'")
         }
     }
     
@@ -73,12 +86,18 @@ class FolderManager: ObservableObject {
     }
     
     func getAppsInFolder(_ folder: VirtualFolder, from allApps: [AppInfo]) -> [AppInfo] {
-        return allApps.filter { folder.appPaths.contains($0.path) }
+        let apps = allApps.filter { folder.appPaths.contains($0.path) }
+        if apps.isEmpty && !folder.appPaths.isEmpty {
+            print("⚠️ В папке '\(folder.name)' нет видимых приложений, хотя путей: \(folder.appPaths.count)")
+            print("   Пути в папке: \(folder.appPaths)")
+        }
+        return apps
     }
     
     func getUnorganizedApps(_ allApps: [AppInfo]) -> [AppInfo] {
         let organizedPaths = Set(folders.flatMap { $0.appPaths })
-        return allApps.filter { !organizedPaths.contains($0.path) && !hiddenAppPaths.contains($0.path) }
+        let unorganized = allApps.filter { !organizedPaths.contains($0.path) && !hiddenAppPaths.contains($0.path) }
+        return unorganized
     }
     
     func getVisibleApps(_ allApps: [AppInfo]) -> [AppInfo] {
@@ -150,6 +169,13 @@ class FolderManager: ObservableObject {
             return false
         }
     }
+
+    func resetConfig() {
+        folders = []
+        hiddenAppPaths = []
+        saveFolders()
+        saveHiddenApps()
+    }
     
     private func saveFolders() {
         do {
@@ -158,6 +184,10 @@ class FolderManager: ObservableObject {
             let data = try encoder.encode(folders)
             try data.write(to: configURL)
             print("✅ Папки сохранены в: \(configURL.path)")
+            print("   Количество папок: \(folders.count)")
+            for folder in folders {
+                print("   - '\(folder.name)': \(folder.appPaths.count) приложений")
+            }
         } catch {
             print("❌ Ошибка сохранения папок: \(error)")
         }
@@ -169,6 +199,10 @@ class FolderManager: ObservableObject {
             let decoder = JSONDecoder()
             folders = try decoder.decode([VirtualFolder].self, from: data)
             print("✅ Папки загружены из: \(configURL.path)")
+            print("   Загружено папок: \(folders.count)")
+            for folder in folders {
+                print("   - '\(folder.name)' (ID: \(folder.id), приложений: \(folder.appPaths.count))")
+            }
         } catch {
             print("ℹ️ Файл конфигурации не найден, создаем новый: \(configURL.path)")
             folders = []
@@ -202,3 +236,4 @@ class FolderManager: ObservableObject {
         }
     }
 }
+

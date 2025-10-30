@@ -1,0 +1,126 @@
+
+
+/* Describes how many apps are in a section, number of apps is inserted in placeholder. */
+"SectionTitle" = "%1$@ <u>(%2$@)</u>";
+
+/* Title of alert stating that an error occurred during an app update. The placeholder %@ will be replaced with the name of the app. */
+"UpdateErrorAlertTitle" = "เกิดข้อผิดพลาดขณะทำการอัปเดต %@.";
+
+/* Touch Bar section title for available updates */
+"AvailableSection" = "รายการที่มี";
+
+/* Table Section Header for available updates */
+"AvailableUpdatesSection" = "รายการอัปเดตที่มี";
+
+/* Cancel button in an update dialogue */
+"CancelAction" = "ยกเลิก";
+
+/* Update progress state of cancelling an update */
+"CancellingUpdateStatus" = "กำลังยกเลิก";
+
+/* Update progress state of downloading an update. The first %@ stands for the already downloaded bytes, the second one for the total amount of bytes. One expected output would be 'Downloading 3 MB of 21 MB' */
+"DownloadingUpdateStatus" = "กำลังดาวโหลด %@ จาก %@";
+
+/* Description of button that opens an error dialogue. */
+"ErrorButtonAccessibilityTitle" = "เกิดข้อผิดพลาดขณะอัปเดตแอป";
+
+/* Update progress state of extracting the downloaded update */
+"ExtractingUpdateStatus" = "กำลังแตกไฟล์อัปเดต";
+
+/* Touch Bar section title for ignored apps */
+"IgnoredSection" = "ยกเว้น";
+
+/* Table Section Header for ignored apps */
+"IgnoredAppsSection" = "แอปที่ไม่ต้องการอัปเดต";
+
+/* Update progress state of initializing an update */
+"InitializingUpdateStatus" = "กำลังเตรียมการ";
+
+/* Touch Bar section title for installed apps */
+"InstalledSection" = "ติดตั้งแล้ว";
+
+/* Table Section Header for already installed apps */
+"InstalledAppsSection" = "แอปที่ติดตั้งแล้ว";
+
+/* Update progress state of installing an update */
+"InstallingUpdateStatus" = "กำลังติดตั้ง";
+
+/* The source name of apps loaded from the App Store. */
+"AppStoreSource" = "Mac App Store";
+
+/* New Version String */
+"RemoteVersionFormat" = "เวอร์ชันใหม่: %@";
+
+/* Title of release notes empty state */
+"NoAppSelectedTitle" = "ไม่มีแอปที่ถูกเลือก";
+
+/* Button to retry an update in an error dialogue */
+"RetryAction" = "ลองอีกครั้ง";
+
+/* Reveal in Finder Row action */
+"RevealAction" = "แสดง";
+
+/* Action to open the app. */
+"OpenAction" = "เปิด";
+
+/* Description of release notes empty state */
+"NoAppSelectedDescription" = "เลือกแอปจากรายการเพื่ออ่าน Release Notes";
+
+/* The description of the app's source. e.g. 'Source: Mac App Store' */
+"AppSource" = "มาจาก: %@";
+
+/* Update String */
+"UpdateAction" = "อัปเดต";
+
+/* Update progress state of waiting to start an update */
+"WaitingUpdateStatus" = "รอสักครู่";
+
+/* The source name for apps loaded from third-party websites. */
+"WebSource" = "Web";
+
+/* Current Version String */
+"LocalVersionFormat" = "เวอร์ชันที่ใช้: %@";
+
+/* Error description when the attempt to update an app from the App Store failed because the user is not signed in with their App Store account. */
+"AppStoreNotSignedInError" = "ยังไม่ได้ลงชื่อเข้าใช้";
+
+/* Sorting option to list by app names alphabetically. Displayed in menu with title: 'Sort By' -> 'Name' */
+"NameSortOption" = "ชื่อ";
+
+/* Update date sorting option. Displayed in menu with title: 'Sort By' -> 'Date' */
+"DateSortOption" = "วันที่";
+
+/* Short description of error stating that update info could not be retrieved for a given app. */
+"UpdateInfoUnavailableError" = "ไม่มีข้อมูลการอัปเดต";
+
+/* Error description when the attempt to update an app from the App Store failed because the user is not signed in with their App Store account. */
+"AppStoreNotSignedInErrorRecoverySuggestion" = "ลงชื่อเข้าใช้ Mac App Store เพื่ออัปเดตแอปนี้";
+
+/* Error message stating that update info could not be retrieved for a given app. */
+"UpdateInfoUnavailableErrorFailureReason" = "ไม่สามารถเข้าถึงข้อมูลการอัปเดตสำหรับแอปนี้ได้";
+
+/* Short description of error that no release notes were found. */
+"ReleaseNotesUnavailableError" = "ไม่มี Release Notes";
+
+/* Error message that no release notes were found. */
+"ReleaseNotesUnavailableErrorFailureReason" = "ไม่พบ Release notes สำหรับแอปนี้";
+
+/* The source name for apps checked via the Homebrew package manager. */
+"HomebrewSource" = "Homebrew";
+
+/* An explanatory text indicating where the update will be performed. The placeholder will be filled with the name of the external updater (App Store, App Name). The text will appear below the Update button, so that it reads: "Update in XY" */
+"ExternalUpdateActionWithAppName" = "จาก %@";
+
+/* Action to update a given app outside of Latest. The placeholder is filled with the name of the external updater. (App Store, App Name) */
+"ExternalUpdateAction" = "อัปเดตจาก %@";
+"UnsupportedLabel" = "No support";
+"LimitedSupportLabel" = "Limited support";
+"NoSupportDescription" = "Update information is unavailable. Check the app or its website to manage updates.";
+"SupportedCompactLabel" = "Supported";
+"LimitedSupportCompactLabel" = "Limited";
+"SupportedLabel" = "Supported";
+"UnsupportedCompactLabel" = "Unsupported";
+"SingleCombinedVersionFormat" = "Version: %@";
+"LimitedSupportDescription" = "Update information is generally available but may sometimes be outdated or inaccurate. Updates cannot be performed directly here.";
+"FullSupportDescription" = "Fully supported. Reliable version information is available, and updates can be managed directly within the app.\n\nIf the shown version information is inaccurate, feel free to write an issue report.";
+"CombinedVersionFormat" = "Version: %1$@ → %2$@";

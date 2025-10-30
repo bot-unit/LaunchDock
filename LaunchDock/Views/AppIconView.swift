@@ -12,6 +12,9 @@ import Foundation
 // App Icon View
 struct AppIconView: View {
     let app: AppInfo
+    let iconSize: Double
+    let fontSize: Double
+    let showAppName: Bool
     let onLaunch: () -> Void
     let onAddToFolder: (() -> Void)?
     let onHideApp: (() -> Void)?
@@ -24,7 +27,7 @@ struct AppIconView: View {
                 Image(nsImage: app.icon)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 64, height: 64)
+                    .frame(width: iconSize, height: iconSize)
                     .scaleEffect(isHovered ? 1.1 : 1.0)
                     .opacity(isDragging ? 0.5 : 1.0)
                     .animation(.easeInOut(duration: 0.2), value: isHovered)
@@ -34,8 +37,11 @@ struct AppIconView: View {
                 isHovered = hovering
             }
             .onDrag {
+                print("🔵 AppIconView.onDrag начат для '\(app.name)'")
+                print("   Путь: \(app.path)")
                 isDragging = true
                 let data = app.path.data(using: .utf8) ?? Data()
+                print("   Размер данных: \(data.count) байт")
                 return NSItemProvider(item: data as NSData, typeIdentifier: "public.text")
             }
             .onChange(of: isDragging) { oldValue, newValue in
@@ -60,14 +66,15 @@ struct AppIconView: View {
                 }
             }
             
-            Text(app.name)
-                .font(.caption)
-                .foregroundColor(.primary)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .frame(width: 80)
+            if showAppName {
+                Text(app.name)
+                    .font(.system(size: fontSize))
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .frame(width: 80)
+            }
         }
         .frame(width: 90, height: 100)
     }
 }
-
