@@ -57,18 +57,23 @@ struct FolderAppsView: View {
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: spacing) {
                         ForEach(apps) { app in
-                            AppIconView(app: app, iconSize: iconSize, fontSize: fontSize, showAppName: showAppNames) {
-                                onLaunchApp(app)
-                                isPresented = false
-                            } onAddToFolder: {
-                                // В контексте папки - удаление
-                                onRemoveApp(app)
-                            } onHideApp: {
-                                onHideApp(app)
-                            }
+                            AppIconView(
+                                app: app, 
+                                iconSize: iconSize, 
+                                fontSize: fontSize, 
+                                showAppName: showAppNames,
+                                onLaunch: {
+                                    onLaunchApp(app)
+                                    isPresented = false
+                                },
+                                onAddToFolder: nil,
+                                onHideApp: nil,
+                                hideContextMenu: true
+                            )
                             .contextMenu {
-                                Button("Удалить из папки") {
+                                Button("Убрать из папки '\(folder.name)'") {
                                     onRemoveApp(app)
+                                    isPresented = false
                                 }
                             }
                         }

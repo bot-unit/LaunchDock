@@ -18,6 +18,7 @@ struct AppIconView: View {
     let onLaunch: () -> Void
     let onAddToFolder: (() -> Void)?
     let onHideApp: (() -> Void)?
+    var hideContextMenu: Bool = false  // Новый параметр
     @State private var isHovered = false
     @State private var isDragging = false
     
@@ -53,15 +54,17 @@ struct AppIconView: View {
                 }
             }
             .contextMenu {
-                if let onAddToFolder = onAddToFolder {
-                    Button("Добавить в папку...") {
-                        onAddToFolder()
+                if !hideContextMenu {
+                    if let onAddToFolder = onAddToFolder {
+                        Button("Добавить в папку...") {
+                            onAddToFolder()
+                        }
                     }
-                }
-                
-                if let onHideApp = onHideApp {
-                    Button("Скрыть приложение") {
-                        onHideApp()
+                    
+                    if let onHideApp = onHideApp {
+                        Button("Скрыть приложение") {
+                            onHideApp()
+                        }
                     }
                 }
             }

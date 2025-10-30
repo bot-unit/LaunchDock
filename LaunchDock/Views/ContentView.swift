@@ -19,10 +19,10 @@ struct ContentView: View {
     @State private var showingHiddenApps = false
     @State private var showingAddCustomApp = false
     @State private var selectedFolder: VirtualFolder? // Используется для .sheet(item:)
+    @State private var folderToEdit: VirtualFolder? // Используется для редактирования
     @State private var selectedApp: AppInfo? // Используется для .sheet(item:)
     @State private var showAllApps = false // Показывать все приложения или только неорганизованные
     @State private var showingSettings = false
-    @State private var showingFolderEdit = false
     @State private var isLaunchingDisabled = false
     @State private var launchingAppId: String? = nil
     @State private var isDragTargeted = false
@@ -37,7 +37,6 @@ struct ContentView: View {
                 FolderCreationSheet(isPresented: $showingFolderCreation) { name, color in
                     // print("🔵 ContentView: Создание папки '\(name)' с цветом \(color.rawValue)")
                     folderManager.addFolder(name: name, color: color)
-                    // print("🔵 ContentView: Текущее количество папок: \(folderManager.folders.count)")
                 }
             }
             .sheet(item: $selectedFolder) { folder in
@@ -116,14 +115,15 @@ struct ContentView: View {
             .sheet(isPresented: $showingSettings) {
                 SettingsView(isPresented: $showingSettings, settingsManager: settingsManager, folderManager: folderManager)
             }
-            .sheet(isPresented: $showingFolderEdit) {
-                if let selectedFolder = selectedFolder {
-                    FolderEditSheet(isPresented: $showingFolderEdit, folder: Binding(
-                        get: { selectedFolder },
-                        set: { self.selectedFolder = $0 }
-                    )) { updatedFolder in
-                        folderManager.updateFolder(updatedFolder)
-                    }
+            .sheet(item: $folderToEdit) { folder in
+                FolderEditSheet(isPresented: Binding(
+                    get: { self.folderToEdit != nil },
+                    set: { if !$0 { self.folderToEdit = nil } }
+                ), folder: Binding(
+                    get: { folder },
+                    set: { self.folderToEdit = $0 }
+                )) { updatedFolder in
+                    folderManager.updateFolder(updatedFolder)
                 }
             }
             .sheet(isPresented: $showingAddCustomApp) {
@@ -142,8 +142,6 @@ struct ContentView: View {
         }
         .padding()
         .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .shadow(radius: 24, y: 8)
         .overlay(dragOverlay)
         .onDrop(of: [.fileURL], isTargeted: $isDragTargeted) { providers in
             handleDrop(providers: providers)
@@ -155,76 +153,19 @@ struct ContentView: View {
     
     // MARK: - Header
     private var headerView: some View {
-        HStack {
-            SearchBar(text: $appManager.searchText)
-                .padding(.horizontal)
-                .glassEffect(.regular.interactive())
-            
-            Spacer()
-            
-            HStack(spacing: 15) {
-                settingsMenu
-            }
+        HeaderView(
+            searchText: $appManager.searchText,
+            showingFolderCreation: $showingFolderCreation,
+            showingHiddenApps: $showingHiddenApps,
+            showingAddCustomApp: $showingAddCustomApp,
+            showingSettings: $showingSettings,
+            showAllApps: $showAllApps,
+            isLoading: appManager.isLoading,
+            hiddenAppsCount: folderManager.hiddenAppPaths.count
+        ) {
+            appManager.isLoading = true
+            appManager.loadApplications()
         }
-        .padding(.horizontal)
-    }
-    
-    // MARK: - Settings Menu
-    private var settingsMenu: some View {
-        Menu {
-            Button("Новая папка") {
-                showingFolderCreation = true
-            }
-            
-            Button("Обновить приложения") {
-                appManager.isLoading = true
-                appManager.loadApplications()
-            }
-            .disabled(appManager.isLoading)
-            
-            Divider()
-            
-            Menu("Режим отображения") {
-                Button(action: { showAllApps = false }) {
-                    HStack {
-                        Text("Только неорганизованные")
-                        if !showAllApps {
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                }
-                
-                Button(action: { showAllApps = true }) {
-                    HStack {
-                        Text("Все приложения")
-                        if showAllApps {
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                }
-            }
-            
-            Divider()
-            
-            Button("Скрытые приложения (\(folderManager.hiddenAppPaths.count))") {
-                showingHiddenApps = true
-            }
-            
-            Button("Добавить приложение вручную...") {
-                showingAddCustomApp = true
-            }
-            
-            Divider()
-            
-            Button("Settings") {
-                showingSettings = true
-            }
-        } label: {
-            Image(systemName: "gear")
-                .font(.title2)
-        }
-        .menuStyle(BorderlessButtonMenuStyle())
-        .help("Настройки и управление")
     }
     
     // MARK: - Content View
@@ -268,8 +209,7 @@ struct ContentView: View {
                     // print("🔵 selectedFolder установлена для sheet(item:): \(selectedFolder?.name ?? "nil")")
                 },
                 onEditFolder: {
-                    selectedFolder = folder
-                    showingFolderEdit = true
+                    folderToEdit = folder
                 },
                 onDeleteFolder: {
                     folderManager.deleteFolder(folder)
@@ -334,42 +274,17 @@ struct ContentView: View {
     
     // MARK: - Statistics
     private var statisticsView: some View {
-        HStack {
-            Text("Папок: \(folderManager.folders.count) • Приложений: \(appManager.filteredApps.count) • Скрыто: \(folderManager.hiddenAppPaths.count)")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Spacer()
-        }
-        .padding(.horizontal)
+        StatisticsView(
+            foldersCount: folderManager.folders.count,
+            appsCount: appManager.filteredApps.count,
+            hiddenCount: folderManager.hiddenAppPaths.count
+        )
     }
     
     // MARK: - Drag Overlay
     @ViewBuilder
     private var dragOverlay: some View {
-        if isDragTargeted {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .stroke(Color.accentColor, lineWidth: 3)
-                .background(
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .fill(Color.accentColor.opacity(0.1))
-                )
-                .overlay(
-                    VStack(spacing: 12) {
-                        Image(systemName: "plus.app.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.accentColor)
-                        Text("Перетащите приложение сюда")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                        Text("Приложение будет добавлено в LaunchDock")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding()
-                )
-                .transition(.opacity)
-        }
+        DragDropOverlay(isTargeted: isDragTargeted)
     }
     
     // MARK: - Helper Methods
@@ -404,9 +319,6 @@ struct ContentView: View {
         if let app = appManager.applications.first(where: { $0.path == appPath }) {
             // print("🔵 Drag & Drop: добавление '\(app.name)' в папку '\(folder.name)'")
             folderManager.addAppToFolder(app, folder: folder)
-        } else {
-            // print("❌ Drag & Drop: приложение не найдено по пути \(appPath)")
-            // print("   Доступно приложений: \(appManager.applications.count)")
         }
     }
     
@@ -423,18 +335,8 @@ struct ContentView: View {
                 provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { (urlData, error) in
                     defer {
                         processedCount += 1
-                        if processedCount == totalCount && successCount > 0 {
-                            DispatchQueue.main.async {
-                                self.showBatchDropSuccess(count: successCount)
-                            }
-                        }
                     }
-                    
-                    if let error = error {
-                        // print("Error loading dropped item: \(error.localizedDescription)")
-                        return
-                    }
-                    
+                                       
                     DispatchQueue.main.async {
                         // Пробуем разные способы получения URL
                         var finalURL: URL?
@@ -477,57 +379,22 @@ struct ContentView: View {
         
         // Проверяем, что это приложение (.app)
         guard path.hasSuffix(".app") else {
-            // print("Dropped file is not an application: \(path)")
-            if !silent {
-                showDropError(message: "Это не приложение. Перетащите файл .app")
-            }
             return false
         }
         
         // Проверяем, что файл существует
         guard FileManager.default.fileExists(atPath: path) else {
-            // print("Application file does not exist at path: \(path)")
-            if !silent {
-                showDropError(message: "Приложение не найдено по пути: \(path)")
-            }
             return false
         }
         
         // Проверяем, не добавлено ли уже это приложение
         if appManager.applications.contains(where: { $0.path == path }) {
-            // print("Application already exists in the list: \(path)")
-            if !silent {
-                showDropError(message: "Это приложение уже добавлено")
-            }
             return false
         }
         
         // Добавляем приложение
         appManager.addCustomApplication(path: path)
-        // print("✅ Successfully added application from path: \(path)")
-        
-        // Показываем успешное уведомление только если не в режиме batch
-        if !silent {
-            showDropSuccess(appName: url.deletingPathExtension().lastPathComponent)
-        }
-        
         return true
     }
     
-    private func showDropError(message: String) {
-        // Можно добавить визуальное уведомление об ошибке
-        // Пока просто печатаем в консоль
-        // print("❌ Drop Error: \(message)")
-    }
-    
-    private func showDropSuccess(appName: String) {
-        // Можно добавить визуальное уведомление об успехе
-        // print("✅ Application '\(appName)' added successfully")
-    }
-    
-    private func showBatchDropSuccess(count: Int) {
-        // print("✅ Successfully added \(count) application(s)")
-    }
 }
-
-

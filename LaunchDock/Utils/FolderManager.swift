@@ -13,35 +13,24 @@ class FolderManager: ObservableObject {
     @Published var folders: [VirtualFolder] = []
     @Published var hiddenAppPaths: Set<String> = []
     
-    private let configURL: URL
-    private let hiddenAppsURL: URL
+    // MARK: - Services
+    private let storage = StorageService()
     
+    // MARK: - Initialization
     init() {
-        // Создаем папку для конфигурации в Documents
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let appConfigPath = documentsPath.appendingPathComponent("LaunchDockConfig")
-        
-        // Создаем папку, если её нет
-        try? FileManager.default.createDirectory(at: appConfigPath, withIntermediateDirectories: true)
-        
-        configURL = appConfigPath.appendingPathComponent("folders.json")
-        hiddenAppsURL = appConfigPath.appendingPathComponent("hidden-apps.json")
-        
         loadFolders()
         loadHiddenApps()
     }
     
-    // Получить путь к файлу конфигурации
+    // MARK: - Public Properties
     var configFilePath: String {
-        return configURL.path
+        return storage.fileURL(for: "folders.json").path
     }
     
+    // MARK: - Folder Management
     func addFolder(name: String, color: VirtualFolder.FolderColor) {
         let folder = VirtualFolder(name: name, appPaths: [], color: color)
         folders.append(folder)
-        // print("✅ Создана новая папка: '\(name)' (цвет: \(color.rawValue))")
-        // print("   ID: \(folder.id)")
-        // print("   Всего папок: \(folders.count)")
         saveFolders()
     }
     
@@ -63,11 +52,6 @@ class FolderManager: ObservableObject {
             updatedFolder.appPaths.insert(app.path)
             folders[index] = updatedFolder
             saveFolders()
-            // print("✅ Добавлено приложение '\(app.name)' в папку '\(folder.name)'")
-            // print("   Путь: \(app.path)")
-            // print("   Всего приложений в папке: \(folders[index].appPaths.count)")
-        } else {
-            // print("❌ Папка не найдена: \(folder.name)")
         }
     }
     
@@ -77,7 +61,6 @@ class FolderManager: ObservableObject {
             updatedFolder.appPaths.remove(app.path)
             folders[index] = updatedFolder
             saveFolders()
-            // print("✅ Удалено приложение '\(app.name)' из папки '\(folder.name)'")
         }
     }
     
@@ -86,12 +69,7 @@ class FolderManager: ObservableObject {
     }
     
     func getAppsInFolder(_ folder: VirtualFolder, from allApps: [AppInfo]) -> [AppInfo] {
-        let apps = allApps.filter { folder.appPaths.contains($0.path) }
-        if apps.isEmpty && !folder.appPaths.isEmpty {
-            // print("⚠️ В папке '\(folder.name)' нет видимых приложений, хотя путей: \(folder.appPaths.count)")
-            // print("   Пути в папке: \(folder.appPaths)")
-        }
-        return apps
+        return allApps.filter { folder.appPaths.contains($0.path) }
     }
     
     func getUnorganizedApps(_ allApps: [AppInfo]) -> [AppInfo] {
@@ -127,47 +105,22 @@ class FolderManager: ObservableObject {
         return hiddenAppPaths.contains(app.path)
     }
     
-    // Экспорт конфигурации в выбранное место
+    // MARK: - Import/Export
     func exportConfig(to url: URL) -> Bool {
-        do {
-            let config = [
-                "folders": folders,
-                "hiddenApps": Array(hiddenAppPaths)
-            ] as [String : Any]
-            
-            let data = try JSONSerialization.data(withJSONObject: config, options: .prettyPrinted)
-            try data.write(to: url)
-            return true
-        } catch {
-            // print("Ошибка экспорта: \(error)")
-            return false
-        }
+        return storage.exportConfig(folders: folders, hiddenAppPaths: hiddenAppPaths, to: url)
     }
     
-    // Импорт конфигурации из файла
     func importConfig(from url: URL) -> Bool {
-        do {
-            let data = try Data(contentsOf: url)
-            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-            
-            if let foldersData = json?["folders"] as? Data {
-                folders = try JSONDecoder().decode([VirtualFolder].self, from: foldersData)
-            } else if let foldersArray = json?["folders"] as? [[String: Any]] {
-                let foldersData = try JSONSerialization.data(withJSONObject: foldersArray)
-                folders = try JSONDecoder().decode([VirtualFolder].self, from: foldersData)
-            }
-            
-            if let hiddenAppsArray = json?["hiddenApps"] as? [String] {
-                hiddenAppPaths = Set(hiddenAppsArray)
-            }
-            
-            saveFolders()
-            saveHiddenApps()
-            return true
-        } catch {
-            // print("Ошибка импорта: \(error)")
+        guard let config = storage.importConfig(from: url) else {
             return false
         }
+        
+        folders = config.folders
+        hiddenAppPaths = config.hiddenApps
+        
+        saveFolders()
+        saveHiddenApps()
+        return true
     }
 
     func resetConfig() {
@@ -177,63 +130,38 @@ class FolderManager: ObservableObject {
         saveHiddenApps()
     }
     
+    // MARK: - Private Methods
     private func saveFolders() {
         do {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted // Красивое форматирование
-            let data = try encoder.encode(folders)
-            try data.write(to: configURL)
-            // print("✅ Папки сохранены в: \(configURL.path)")
-            // print("   Количество папок: \(folders.count)")
-            for folder in folders {
-                // print("   - '\(folder.name)': \(folder.appPaths.count) приложений")
-            }
+            try storage.saveFolders(folders)
         } catch {
-            // print("❌ Ошибка сохранения папок: \(error)")
+            print("❌ Ошибка сохранения папок: \(error)")
         }
     }
     
     private func loadFolders() {
         do {
-            let data = try Data(contentsOf: configURL)
-            let decoder = JSONDecoder()
-            folders = try decoder.decode([VirtualFolder].self, from: data)
-            // print("✅ Папки загружены из: \(configURL.path)")
-            // print("   Загружено папок: \(folders.count)")
-            for folder in folders {
-                // print("   - '\(folder.name)' (ID: \(folder.id), приложений: \(folder.appPaths.count))")
-            }
+            folders = try storage.loadFolders()
         } catch {
-            // print("ℹ️ Файл конфигурации не найден, создаем новый: \(configURL.path)")
             folders = []
-            saveFolders() // Создаем пустой файл
+            saveFolders()
         }
     }
     
     private func saveHiddenApps() {
         do {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            let data = try encoder.encode(Array(hiddenAppPaths))
-            try data.write(to: hiddenAppsURL)
-            // print("✅ Скрытые приложения сохранены в: \(hiddenAppsURL.path)")
+            try storage.saveHiddenApps(hiddenAppPaths)
         } catch {
-            // print("❌ Ошибка сохранения скрытых приложений: \(error)")
+            print("❌ Ошибка сохранения скрытых приложений: \(error)")
         }
     }
     
     private func loadHiddenApps() {
         do {
-            let data = try Data(contentsOf: hiddenAppsURL)
-            let decoder = JSONDecoder()
-            let hiddenArray = try decoder.decode([String].self, from: data)
-            hiddenAppPaths = Set(hiddenArray)
-            // print("✅ Скрытые приложения загружены из: \(hiddenAppsURL.path)")
+            hiddenAppPaths = try storage.loadHiddenApps()
         } catch {
-            // print("ℹ️ Файл скрытых приложений не найден, создаем новый: \(hiddenAppsURL.path)")
             hiddenAppPaths = []
-            saveHiddenApps() // Создаем пустой файл
+            saveHiddenApps()
         }
     }
 }
-
