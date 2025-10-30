@@ -80,6 +80,7 @@ struct FolderAppsView: View {
         .padding()
         .frame(width: 600, height: 400)
         .onAppear {
+            /*
             print("📂 FolderAppsView открыт для папки '\(folder.name)'")
             print("   ID папки: \(folder.id)")
             print("   Количество путей в папке: \(folder.appPaths.count)")
@@ -88,6 +89,7 @@ struct FolderAppsView: View {
             for app in apps {
                 print("   - '\(app.name)' (\(app.path))")
             }
+            */
         }
     }
 }

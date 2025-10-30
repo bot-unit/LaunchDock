@@ -35,9 +35,9 @@ struct ContentView: View {
         mainContent
             .sheet(isPresented: $showingFolderCreation) {
                 FolderCreationSheet(isPresented: $showingFolderCreation) { name, color in
-                    print("🔵 ContentView: Создание папки '\(name)' с цветом \(color.rawValue)")
+                    // print("🔵 ContentView: Создание папки '\(name)' с цветом \(color.rawValue)")
                     folderManager.addFolder(name: name, color: color)
-                    print("🔵 ContentView: Текущее количество папок: \(folderManager.folders.count)")
+                    // print("🔵 ContentView: Текущее количество папок: \(folderManager.folders.count)")
                 }
             }
             .sheet(item: $selectedFolder) { folder in
@@ -262,10 +262,10 @@ struct ContentView: View {
                 folder: folder,
                 apps: appsInFolder,
                 onOpenFolder: {
-                    print("🔵 onOpenFolder вызван для папки '\(folder.name)'")
-                    print("🔵 appsInFolder.count = \(appsInFolder.count)")
+                    // print("🔵 onOpenFolder вызван для папки '\(folder.name)'")
+                    // print("🔵 appsInFolder.count = \(appsInFolder.count)")
                     selectedFolder = folder
-                    print("🔵 selectedFolder установлена для sheet(item:): \(selectedFolder?.name ?? "nil")")
+                    // print("🔵 selectedFolder установлена для sheet(item:): \(selectedFolder?.name ?? "nil")")
                 },
                 onEditFolder: {
                     selectedFolder = folder
@@ -316,9 +316,9 @@ struct ContentView: View {
     @ViewBuilder
     private func appContextMenu(app: AppInfo, folderForApp: VirtualFolder?) -> some View {
         Button("Добавить в папку...") {
-            print("🔵 Контекстное меню: Добавить в папку для '\(app.name)'")
+            // print("🔵 Контекстное меню: Добавить в папку для '\(app.name)'")
             selectedApp = app
-            print("🔵 selectedApp установлен для sheet: \(selectedApp?.name ?? "nil")")
+            // print("🔵 selectedApp установлен для sheet: \(selectedApp?.name ?? "nil")")
         }
         
         if let folder = folderForApp {
@@ -394,19 +394,19 @@ struct ContentView: View {
     }
     
     private func handleAddToFolder(app: AppInfo) {
-        print("🔵 onAddToFolder callback: выбрано приложение '\(app.name)'")
+        // print("🔵 onAddToFolder callback: выбрано приложение '\(app.name)'")
         selectedApp = app
-        print("🔵 selectedApp установлен для sheet(item:): \(selectedApp?.name ?? "nil")")
+        // print("🔵 selectedApp установлен для sheet(item:): \(selectedApp?.name ?? "nil")")
     }
     
     private func handleAppDropped(appPath: String, folder: VirtualFolder) {
-        print("🔵 onAppDropped вызван с путём: \(appPath)")
+        // print("🔵 onAppDropped вызван с путём: \(appPath)")
         if let app = appManager.applications.first(where: { $0.path == appPath }) {
-            print("🔵 Drag & Drop: добавление '\(app.name)' в папку '\(folder.name)'")
+            // print("🔵 Drag & Drop: добавление '\(app.name)' в папку '\(folder.name)'")
             folderManager.addAppToFolder(app, folder: folder)
         } else {
-            print("❌ Drag & Drop: приложение не найдено по пути \(appPath)")
-            print("   Доступно приложений: \(appManager.applications.count)")
+            // print("❌ Drag & Drop: приложение не найдено по пути \(appPath)")
+            // print("   Доступно приложений: \(appManager.applications.count)")
         }
     }
     
@@ -431,7 +431,7 @@ struct ContentView: View {
                     }
                     
                     if let error = error {
-                        print("Error loading dropped item: \(error.localizedDescription)")
+                        // print("Error loading dropped item: \(error.localizedDescription)")
                         return
                     }
                     
@@ -460,7 +460,7 @@ struct ContentView: View {
                                 successCount += 1
                             }
                         } else {
-                            print("Could not extract URL from dropped item")
+                            // print("Could not extract URL from dropped item")
                         }
                     }
                 }
@@ -477,7 +477,7 @@ struct ContentView: View {
         
         // Проверяем, что это приложение (.app)
         guard path.hasSuffix(".app") else {
-            print("Dropped file is not an application: \(path)")
+            // print("Dropped file is not an application: \(path)")
             if !silent {
                 showDropError(message: "Это не приложение. Перетащите файл .app")
             }
@@ -486,7 +486,7 @@ struct ContentView: View {
         
         // Проверяем, что файл существует
         guard FileManager.default.fileExists(atPath: path) else {
-            print("Application file does not exist at path: \(path)")
+            // print("Application file does not exist at path: \(path)")
             if !silent {
                 showDropError(message: "Приложение не найдено по пути: \(path)")
             }
@@ -495,7 +495,7 @@ struct ContentView: View {
         
         // Проверяем, не добавлено ли уже это приложение
         if appManager.applications.contains(where: { $0.path == path }) {
-            print("Application already exists in the list: \(path)")
+            // print("Application already exists in the list: \(path)")
             if !silent {
                 showDropError(message: "Это приложение уже добавлено")
             }
@@ -504,7 +504,7 @@ struct ContentView: View {
         
         // Добавляем приложение
         appManager.addCustomApplication(path: path)
-        print("✅ Successfully added application from path: \(path)")
+        // print("✅ Successfully added application from path: \(path)")
         
         // Показываем успешное уведомление только если не в режиме batch
         if !silent {
@@ -517,16 +517,16 @@ struct ContentView: View {
     private func showDropError(message: String) {
         // Можно добавить визуальное уведомление об ошибке
         // Пока просто печатаем в консоль
-        print("❌ Drop Error: \(message)")
+        // print("❌ Drop Error: \(message)")
     }
     
     private func showDropSuccess(appName: String) {
         // Можно добавить визуальное уведомление об успехе
-        print("✅ Application '\(appName)' added successfully")
+        // print("✅ Application '\(appName)' added successfully")
     }
     
     private func showBatchDropSuccess(count: Int) {
-        print("✅ Successfully added \(count) application(s)")
+        // print("✅ Successfully added \(count) application(s)")
     }
 }
 

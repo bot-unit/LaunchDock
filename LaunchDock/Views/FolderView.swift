@@ -75,66 +75,66 @@ struct FolderView: View {
                 isHovered = hovering
             }
             .onDrop(of: ["public.text"], isTargeted: $isTargeted) { providers in
-                print("🔵 FolderView.onDrop вызван для папки '\(folder.name)'")
-                print("   Количество providers: \(providers.count)")
+                // print("🔵 FolderView.onDrop вызван для папки '\(folder.name)'")
+                // print("   Количество providers: \(providers.count)")
                 
                 guard let provider = providers.first else { 
-                    print("❌ FolderView.onDrop: нет providers")
-                    return false 
+                    // print("❌ FolderView.onDrop: нет providers")
+                    return false
                 }
                 
                 provider.loadItem(forTypeIdentifier: "public.text", options: nil) { data, error in
                     if let error = error {
-                        print("❌ FolderView.onDrop: ошибка загрузки: \(error)")
+                        // print("❌ FolderView.onDrop: ошибка загрузки: \(error)")
                         return
                     }
                     
-                    print("🔵 FolderView.onDrop: тип data: \(type(of: data))")
+                    // print("🔵 FolderView.onDrop: тип data: \(type(of: data))")
                     
                     var appPath: String?
                     
                     // Способ 1: data как URL (временный файл с содержимым)
                     if let url = data as? URL {
-                        print("🔵 Способ 1: data это URL: \(url)")
+                        // print("🔵 Способ 1: data это URL: \(url)")
                         // Читаем содержимое файла
                         if let content = try? String(contentsOf: url, encoding: .utf8) {
                             appPath = content.trimmingCharacters(in: .whitespacesAndNewlines)
-                            print("🔵 Содержимое файла: '\(appPath ?? "nil")'")
+                            // print("🔵 Содержимое файла: '\(appPath ?? "nil")'")
                         }
                     }
                     // Способ 2: data как NSURL
                     else if let nsurl = data as? NSURL {
                         let url = nsurl as URL
-                        print("🔵 Способ 2: data это NSURL: \(url)")
+                        // print("🔵 Способ 2: data это NSURL: \(url)")
                         if let content = try? String(contentsOf: url, encoding: .utf8) {
                             appPath = content.trimmingCharacters(in: .whitespacesAndNewlines)
-                            print("🔵 Содержимое файла: '\(appPath ?? "nil")'")
+                            // print("🔵 Содержимое файла: '\(appPath ?? "nil")'")
                         }
                     }
                     // Способ 3: data как Data
                     else if let data = data as? Data {
                         appPath = String(data: data, encoding: .utf8)
-                        print("🔵 Способ 3 (Data): \(appPath ?? "nil")")
+                        // print("🔵 Способ 3 (Data): \(appPath ?? "nil")")
                     }
                     // Способ 4: data как NSData
                     else if let nsdata = data as? NSData {
                         appPath = String(data: nsdata as Data, encoding: .utf8)
-                        print("🔵 Способ 4 (NSData): \(appPath ?? "nil")")
+                        // print("🔵 Способ 4 (NSData): \(appPath ?? "nil")")
                     }
                     // Способ 5: data как String напрямую
                     else if let string = data as? String {
                         appPath = string
-                        print("🔵 Способ 5 (String): \(appPath ?? "nil")")
+                        // print("🔵 Способ 5 (String): \(appPath ?? "nil")")
                     }
                     
                     if let appPath = appPath {
-                        print("✅ FolderView.onDrop: получен путь '\(appPath)'")
+                        // print("✅ FolderView.onDrop: получен путь '\(appPath)'")
                         DispatchQueue.main.async {
                             onAppDropped(appPath)
                         }
                     } else {
-                        print("❌ FolderView.onDrop: не удалось извлечь путь из data")
-                        print("   data = \(String(describing: data))")
+                        // print("❌ FolderView.onDrop: не удалось извлечь путь из data")
+                        // print("   data = \(String(describing: data))")
                     }
                 }
                 return true

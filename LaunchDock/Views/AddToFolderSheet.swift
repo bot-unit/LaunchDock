@@ -68,11 +68,13 @@ struct AddToFolderSheet: View {
         .padding()
         .frame(width: 400)
         .onAppear {
+            /*
             print("📂 AddToFolderSheet открыт для приложения '\(app.name)'")
             print("   Передано папок: \(folderManager.folders.count)")
             for folder in folderManager.folders {
                 print("   - '\(folder.name)' (ID: \(folder.id), приложений: \(folder.appPaths.count))")
             }
+            */
         }
     }
 }

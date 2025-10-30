@@ -41,7 +41,7 @@ struct AppIconView: View {
                 print("   Путь: \(app.path)")
                 isDragging = true
                 let data = app.path.data(using: .utf8) ?? Data()
-                print("   Размер данных: \(data.count) байт")
+                // print("   Размер данных: \(data.count) байт")
                 return NSItemProvider(item: data as NSData, typeIdentifier: "public.text")
             }
             .onChange(of: isDragging) { oldValue, newValue in

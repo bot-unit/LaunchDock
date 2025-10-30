@@ -39,9 +39,9 @@ class FolderManager: ObservableObject {
     func addFolder(name: String, color: VirtualFolder.FolderColor) {
         let folder = VirtualFolder(name: name, appPaths: [], color: color)
         folders.append(folder)
-        print("✅ Создана новая папка: '\(name)' (цвет: \(color.rawValue))")
-        print("   ID: \(folder.id)")
-        print("   Всего папок: \(folders.count)")
+        // print("✅ Создана новая папка: '\(name)' (цвет: \(color.rawValue))")
+        // print("   ID: \(folder.id)")
+        // print("   Всего папок: \(folders.count)")
         saveFolders()
     }
     
@@ -63,11 +63,11 @@ class FolderManager: ObservableObject {
             updatedFolder.appPaths.insert(app.path)
             folders[index] = updatedFolder
             saveFolders()
-            print("✅ Добавлено приложение '\(app.name)' в папку '\(folder.name)'")
-            print("   Путь: \(app.path)")
-            print("   Всего приложений в папке: \(folders[index].appPaths.count)")
+            // print("✅ Добавлено приложение '\(app.name)' в папку '\(folder.name)'")
+            // print("   Путь: \(app.path)")
+            // print("   Всего приложений в папке: \(folders[index].appPaths.count)")
         } else {
-            print("❌ Папка не найдена: \(folder.name)")
+            // print("❌ Папка не найдена: \(folder.name)")
         }
     }
     
@@ -77,7 +77,7 @@ class FolderManager: ObservableObject {
             updatedFolder.appPaths.remove(app.path)
             folders[index] = updatedFolder
             saveFolders()
-            print("✅ Удалено приложение '\(app.name)' из папки '\(folder.name)'")
+            // print("✅ Удалено приложение '\(app.name)' из папки '\(folder.name)'")
         }
     }
     
@@ -88,8 +88,8 @@ class FolderManager: ObservableObject {
     func getAppsInFolder(_ folder: VirtualFolder, from allApps: [AppInfo]) -> [AppInfo] {
         let apps = allApps.filter { folder.appPaths.contains($0.path) }
         if apps.isEmpty && !folder.appPaths.isEmpty {
-            print("⚠️ В папке '\(folder.name)' нет видимых приложений, хотя путей: \(folder.appPaths.count)")
-            print("   Пути в папке: \(folder.appPaths)")
+            // print("⚠️ В папке '\(folder.name)' нет видимых приложений, хотя путей: \(folder.appPaths.count)")
+            // print("   Пути в папке: \(folder.appPaths)")
         }
         return apps
     }
@@ -139,7 +139,7 @@ class FolderManager: ObservableObject {
             try data.write(to: url)
             return true
         } catch {
-            print("Ошибка экспорта: \(error)")
+            // print("Ошибка экспорта: \(error)")
             return false
         }
     }
@@ -165,7 +165,7 @@ class FolderManager: ObservableObject {
             saveHiddenApps()
             return true
         } catch {
-            print("Ошибка импорта: \(error)")
+            // print("Ошибка импорта: \(error)")
             return false
         }
     }
@@ -183,13 +183,13 @@ class FolderManager: ObservableObject {
             encoder.outputFormatting = .prettyPrinted // Красивое форматирование
             let data = try encoder.encode(folders)
             try data.write(to: configURL)
-            print("✅ Папки сохранены в: \(configURL.path)")
-            print("   Количество папок: \(folders.count)")
+            // print("✅ Папки сохранены в: \(configURL.path)")
+            // print("   Количество папок: \(folders.count)")
             for folder in folders {
-                print("   - '\(folder.name)': \(folder.appPaths.count) приложений")
+                // print("   - '\(folder.name)': \(folder.appPaths.count) приложений")
             }
         } catch {
-            print("❌ Ошибка сохранения папок: \(error)")
+            // print("❌ Ошибка сохранения папок: \(error)")
         }
     }
     
@@ -198,13 +198,13 @@ class FolderManager: ObservableObject {
             let data = try Data(contentsOf: configURL)
             let decoder = JSONDecoder()
             folders = try decoder.decode([VirtualFolder].self, from: data)
-            print("✅ Папки загружены из: \(configURL.path)")
-            print("   Загружено папок: \(folders.count)")
+            // print("✅ Папки загружены из: \(configURL.path)")
+            // print("   Загружено папок: \(folders.count)")
             for folder in folders {
-                print("   - '\(folder.name)' (ID: \(folder.id), приложений: \(folder.appPaths.count))")
+                // print("   - '\(folder.name)' (ID: \(folder.id), приложений: \(folder.appPaths.count))")
             }
         } catch {
-            print("ℹ️ Файл конфигурации не найден, создаем новый: \(configURL.path)")
+            // print("ℹ️ Файл конфигурации не найден, создаем новый: \(configURL.path)")
             folders = []
             saveFolders() // Создаем пустой файл
         }
@@ -216,9 +216,9 @@ class FolderManager: ObservableObject {
             encoder.outputFormatting = .prettyPrinted
             let data = try encoder.encode(Array(hiddenAppPaths))
             try data.write(to: hiddenAppsURL)
-            print("✅ Скрытые приложения сохранены в: \(hiddenAppsURL.path)")
+            // print("✅ Скрытые приложения сохранены в: \(hiddenAppsURL.path)")
         } catch {
-            print("❌ Ошибка сохранения скрытых приложений: \(error)")
+            // print("❌ Ошибка сохранения скрытых приложений: \(error)")
         }
     }
     
@@ -228,9 +228,9 @@ class FolderManager: ObservableObject {
             let decoder = JSONDecoder()
             let hiddenArray = try decoder.decode([String].self, from: data)
             hiddenAppPaths = Set(hiddenArray)
-            print("✅ Скрытые приложения загружены из: \(hiddenAppsURL.path)")
+            // print("✅ Скрытые приложения загружены из: \(hiddenAppsURL.path)")
         } catch {
-            print("ℹ️ Файл скрытых приложений не найден, создаем новый: \(hiddenAppsURL.path)")
+            // print("ℹ️ Файл скрытых приложений не найден, создаем новый: \(hiddenAppsURL.path)")
             hiddenAppPaths = []
             saveHiddenApps() // Создаем пустой файл
         }
