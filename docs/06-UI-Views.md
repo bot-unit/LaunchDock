@@ -4,6 +4,7 @@
 
 - Hosts main grid, folders section, statistics, modals
 - Owns sheet presentation states
+- After launching an app, the launcher window is automatically hidden (`NSApp.hide(nil)`) for a clean workflow
 
 ## FolderView / FolderAppsView
 

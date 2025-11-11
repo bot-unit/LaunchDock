@@ -177,6 +177,9 @@ NSWorkspace.shared.openApplication(at: url)
      │
      ▼
 macOS launches app
+     │
+     ▼
+Launcher window hidden (NSApp.hide(nil))
 ```
 
 ### Создание папки

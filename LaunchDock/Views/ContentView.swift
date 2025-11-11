@@ -8,6 +8,7 @@
 import SwiftUI
 import Combine
 import UniformTypeIdentifiers
+import AppKit // Needed for NSApp window minimization
 
 // Main Content View
 struct ContentView: View {
@@ -309,6 +310,10 @@ struct ContentView: View {
         isLaunchingDisabled = true
         appManager.launchApplication(app)
         appManager.searchText = ""
+
+    // Hide the app's main window after launching target application to keep UI clean.
+    // Using NSApp.hide(nil) fully hides all windows (better launcher UX vs minimizing).
+    NSApp.hide(nil)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             withAnimation(.spring()) {
