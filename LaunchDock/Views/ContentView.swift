@@ -18,6 +18,7 @@ struct ContentView: View {
     @State private var showingFolderCreation = false
     @State private var showingHiddenApps = false
     @State private var showingAddCustomApp = false
+    @State private var showingUpdatesCheck = false
     @State private var selectedFolder: VirtualFolder? // Используется для .sheet(item:)
     @State private var folderToEdit: VirtualFolder? // Используется для редактирования
     @State private var selectedApp: AppInfo? // Используется для .sheet(item:)
@@ -115,6 +116,9 @@ struct ContentView: View {
             .sheet(isPresented: $showingSettings) {
                 SettingsView(isPresented: $showingSettings, settingsManager: settingsManager, folderManager: folderManager)
             }
+            .sheet(isPresented: $showingUpdatesCheck) {
+                UpdatesCheckView(isPresented: $showingUpdatesCheck, apps: appManager.applications)
+            }
             .sheet(item: $folderToEdit) { folder in
                 FolderEditSheet(isPresented: Binding(
                     get: { self.folderToEdit != nil },
@@ -127,8 +131,8 @@ struct ContentView: View {
                 }
             }
             .sheet(isPresented: $showingAddCustomApp) {
-                AddCustomAppSheet(isPresented: $showingAddCustomApp) { path in
-                    appManager.addCustomApplication(path: path)
+                AddCustomAppSheet(isPresented: $showingAddCustomApp) { url in
+                    appManager.addCustomApplication(url: url)
                 }
             }
     }
@@ -160,6 +164,7 @@ struct ContentView: View {
             showingAddCustomApp: $showingAddCustomApp,
             showingSettings: $showingSettings,
             showAllApps: $showAllApps,
+            showingUpdatesCheck: $showingUpdatesCheck,
             isLoading: appManager.isLoading,
             hiddenAppsCount: folderManager.hiddenAppPaths.count
         ) {
@@ -187,7 +192,9 @@ struct ContentView: View {
     private var appsGridView: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: settingsManager.spacing) {
-                foldersSection
+                if appManager.searchText.isEmpty {
+                    foldersSection
+                }
                 appsSection
             }
             .padding()
@@ -247,9 +254,14 @@ struct ContentView: View {
     }
     
     private var appsToShow: [AppInfo] {
-        showAllApps
-            ? folderManager.getVisibleApps(appManager.filteredApps)
-            : folderManager.getUnorganizedApps(appManager.filteredApps)
+        if !appManager.searchText.isEmpty {
+            // При поиске всегда показываем плоский список всех видимых приложений
+            return folderManager.getVisibleApps(appManager.filteredApps)
+        } else {
+            return showAllApps
+                ? folderManager.getVisibleApps(appManager.filteredApps)
+                : folderManager.getUnorganizedApps(appManager.filteredApps)
+        }
     }
     
     // MARK: - App Context Menu
@@ -375,7 +387,7 @@ struct ContentView: View {
     @discardableResult
     private func handleDroppedURL(_ url: URL, silent: Bool = false) -> Bool {
         // Получаем путь к файлу, убирая file:// схему
-        let path = url.path
+    let path = url.path
         
         // Проверяем, что это приложение (.app)
         guard path.hasSuffix(".app") else {
@@ -393,7 +405,7 @@ struct ContentView: View {
         }
         
         // Добавляем приложение
-        appManager.addCustomApplication(path: path)
+        appManager.addCustomApplication(url: url)
         return true
     }
     

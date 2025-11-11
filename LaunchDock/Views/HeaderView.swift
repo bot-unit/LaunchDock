@@ -15,6 +15,7 @@ struct HeaderView: View {
     @Binding var showingAddCustomApp: Bool
     @Binding var showingSettings: Bool
     @Binding var showAllApps: Bool
+    @Binding var showingUpdatesCheck: Bool
     
     let isLoading: Bool
     let hiddenAppsCount: Int
@@ -46,6 +47,10 @@ struct HeaderView: View {
                 onRefresh()
             }
             .disabled(isLoading)
+            
+            Button("Проверить обновления...") {
+                showingUpdatesCheck = true
+            }
             
             Divider()
             

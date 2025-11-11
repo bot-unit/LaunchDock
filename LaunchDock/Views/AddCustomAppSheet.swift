@@ -10,7 +10,7 @@ import UniformTypeIdentifiers
 
 struct AddCustomAppSheet: View {
     @Binding var isPresented: Bool
-    let onAddApp: (String) -> Void
+    let onAddApp: (URL) -> Void
     
     var body: some View {
         VStack(spacing: 20) {
@@ -27,7 +27,7 @@ struct AddCustomAppSheet: View {
                 
                 if openPanel.runModal() == .OK {
                     if let url = openPanel.url {
-                        onAddApp(url.path)
+                        onAddApp(url)
                         isPresented = false
                     }
                 }

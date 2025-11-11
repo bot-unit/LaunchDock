@@ -107,6 +107,46 @@ class StorageService {
         let array = try load([String].self, from: "hidden-apps.json") ?? []
         return Set(array)
     }
+
+    // MARK: - Custom Apps Entries with Security-Scoped Bookmarks
+
+    /// Запись о кастомном приложении с возможной security-скоуп закладкой
+    struct CustomAppEntry: Codable, Equatable {
+        let path: String
+        let bookmark: Data?
+    }
+
+    /// Сохраняет записи кастомных приложений (с закладками)
+    func saveCustomAppEntries(_ entries: [CustomAppEntry]) throws {
+        try save(entries, to: "custom-apps.json")
+    }
+
+    /// Загружает записи кастомных приложений (с поддержкой старого формата)
+    func loadCustomAppEntries() throws -> [CustomAppEntry] {
+        // Пробуем новый формат
+        if let entries = try load([CustomAppEntry].self, from: "custom-apps.json") {
+            return entries
+        }
+        // Фолбэк на старый формат: массив строк-путей
+        if let paths = try load([String].self, from: "custom-apps.json") {
+            return paths.map { CustomAppEntry(path: $0, bookmark: nil) }
+        }
+        return []
+    }
+
+    // MARK: - Custom (Manually Added) Applications
+
+    /// Сохраняет список вручную добавленных приложений
+    /// - Parameter customAppPaths: Массив путей к приложениям (.app)
+    func saveCustomApps(_ customAppPaths: [String]) throws {
+        try save(customAppPaths, to: "custom-apps.json")
+    }
+
+    /// Загружает список вручную добавленных приложений
+    /// - Returns: Массив путей или пустой массив, если файл отсутствует
+    func loadCustomApps() throws -> [String] {
+        return try load([String].self, from: "custom-apps.json") ?? []
+    }
     
     /// Экспортирует конфигурацию в указанное место
     /// - Parameters:
@@ -114,11 +154,12 @@ class StorageService {
     ///   - hiddenAppPaths: Скрытые приложения
     ///   - url: URL для сохранения
     /// - Returns: true в случае успеха
-    func exportConfig(folders: [VirtualFolder], hiddenAppPaths: Set<String>, to url: URL) -> Bool {
+    func exportConfig(folders: [VirtualFolder], hiddenAppPaths: Set<String>, customAppPaths: Set<String> = [], to url: URL) -> Bool {
         do {
             let config: [String: Any] = [
                 "folders": try JSONEncoder().encode(folders),
-                "hiddenApps": Array(hiddenAppPaths)
+                "hiddenApps": Array(hiddenAppPaths),
+                "customApps": Array(customAppPaths)
             ]
             
             let data = try JSONSerialization.data(withJSONObject: config, options: .prettyPrinted)
@@ -133,7 +174,7 @@ class StorageService {
     /// Импортирует конфигурацию из файла
     /// - Parameter url: URL файла для импорта
     /// - Returns: Кортеж с папками и скрытыми приложениями, или nil при ошибке
-    func importConfig(from url: URL) -> (folders: [VirtualFolder], hiddenApps: Set<String>)? {
+    func importConfig(from url: URL) -> (folders: [VirtualFolder], hiddenApps: Set<String>, customApps: Set<String>)? {
         do {
             let data = try Data(contentsOf: url)
             guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
@@ -142,6 +183,7 @@ class StorageService {
             
             var folders: [VirtualFolder] = []
             var hiddenApps: Set<String> = []
+            var customApps: Set<String> = []
             
             // Загружаем папки
             if let foldersData = json["folders"] as? Data {
@@ -155,8 +197,13 @@ class StorageService {
             if let hiddenAppsArray = json["hiddenApps"] as? [String] {
                 hiddenApps = Set(hiddenAppsArray)
             }
-            
-            return (folders, hiddenApps)
+
+            // Загружаем вручную добавленные приложения
+            if let customAppsArray = json["customApps"] as? [String] {
+                customApps = Set(customAppsArray)
+            }
+
+            return (folders, hiddenApps, customApps)
         } catch {
             print("Ошибка импорта: \(error)")
             return nil
