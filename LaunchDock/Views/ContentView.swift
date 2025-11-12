@@ -28,6 +28,7 @@ struct ContentView: View {
     @State private var isLaunchingDisabled = false
     @State private var launchingAppId: String? = nil
     @State private var isDragTargeted = false
+    @FocusState private var isMainViewFocused: Bool
     
     var columns: [GridItem] {
         Array(repeating: GridItem(.flexible(), spacing: settingsManager.spacing), count: Int(settingsManager.numberOfColumns))
@@ -35,6 +36,15 @@ struct ContentView: View {
     
     var body: some View {
         mainContent
+            .focusable()
+            .focused($isMainViewFocused)
+            .onAppear {
+                isMainViewFocused = true
+            }
+            .onKeyPress(.escape) {
+                handleEscapeKey()
+                return .handled
+            }
             .sheet(isPresented: $showingFolderCreation) {
                 FolderCreationSheet(isPresented: $showingFolderCreation) { name, color in
                     // print("🔵 ContentView: Создание папки '\(name)' с цветом \(color.rawValue)")
@@ -412,6 +422,24 @@ struct ContentView: View {
         // Добавляем приложение
         appManager.addCustomApplication(url: url)
         return true
+    }
+    
+    // MARK: - Keyboard Shortcuts
+    private func handleEscapeKey() {
+        // Проверяем, что не открыты другие окна (sheet'ы)
+        let hasOpenSheets = showingFolderCreation 
+            || selectedFolder != nil 
+            || selectedApp != nil 
+            || showingHiddenApps 
+            || showingSettings 
+            || showingUpdatesCheck 
+            || folderToEdit != nil 
+            || showingAddCustomApp
+        
+        // Скрываем приложение только если нет открытых модальных окон
+        if !hasOpenSheets {
+            NSApp.hide(nil)
+        }
     }
     
 }

@@ -22,9 +22,10 @@ See [`docs/README.md`](docs/README.md) for the complete index.
 
 - Virtual folder organization without moving app bundles
 - Hide/show apps
-- Manually add apps outside standard directories
+- Manually add apps via button or drag & drop `.app` bundles
 - Security-scoped bookmark persistence for custom apps
 - Export/import configuration
+- Quick hide with ESC key (when no modal windows are open)
 
 ## License
 
