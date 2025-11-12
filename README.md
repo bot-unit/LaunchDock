@@ -26,6 +26,11 @@ See [`docs/README.md`](docs/README.md) for the complete index.
 - Security-scoped bookmark persistence for custom apps
 - Export/import configuration
 - Quick hide with ESC key (when no modal windows are open)
+- Optional update check for installed applications (requires outbound network permission)
+
+## Network Permissions
+
+LaunchDock performs an optional update check (when you trigger the updates sheet) which fetches metadata remotely. For this feature to work, the application must have permission for outbound network connections. If you use a firewall or privacy tool, allow LaunchDock to initiate outgoing requests; otherwise the update check will silently report no data.
 
 ## License
 

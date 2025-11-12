@@ -47,3 +47,4 @@ When adding a new domain concept (e.g., Favorites):
 
 - 2025-11-11: Added structured docs system and bookmark-based custom apps persistence.
 - 2025-11-11: Migrated root ARCHITECTURE.md into docs/02-Architecture.md — single source of truth.
+- 2025-11-12: Documented update check feature and network permission requirement.

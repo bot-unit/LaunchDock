@@ -135,7 +135,7 @@ class FolderManager: ObservableObject {
         do {
             try storage.saveFolders(folders)
         } catch {
-            print("❌ Ошибка сохранения папок: \(error)")
+            // print("❌ Ошибка сохранения папок: \(error)")
         }
     }
     
@@ -152,7 +152,7 @@ class FolderManager: ObservableObject {
         do {
             try storage.saveHiddenApps(hiddenAppPaths)
         } catch {
-            print("❌ Ошибка сохранения скрытых приложений: \(error)")
+            // print("❌ Ошибка сохранения скрытых приложений: \(error)")
         }
     }
     
